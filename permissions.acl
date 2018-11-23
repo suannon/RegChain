@@ -1,0 +1,142 @@
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+
+rule StudentCanCreateContract {
+  description: "Allow student to create their own contract"
+  participant(m): "org.acme.regchain.student"
+  operation: CREATE
+  resource(res): "org.acme.regchain.contract"
+  transaction: "org.acme.regchain.createContract"
+  condition: (res.student.getIdentifier() == m.getIdentifier())
+  action: ALLOW
+}
+
+rule StudentCanAccesscreateContract {
+  description: "Allow student access createContract transaction"
+  participant: "org.acme.regchain.student"
+  operation: CREATE
+  resource: "org.acme.regchain.createContract"
+  action: ALLOW
+}
+
+rule TeacherCanModStudentCredit {
+  description: "Description of the Transactional ACL rule"
+  participant: "org.acme.regchain.teacher"
+  operation: UPDATE
+  resource(res): "org.acme.regchain.student"
+  transaction(tx): "org.acme.regchain.creditApproval"
+  condition: (res.studentID == tx.contract.studentID)
+  action: ALLOW
+}
+
+rule TeacherCanApproveCredit {
+  description: "Teacher can approve credit if it belong to them"
+  participant(m): "org.acme.regchain.teacher"
+  operation: UPDATE
+  resource(res): "org.acme.regchain.contract"
+  transaction: "org.acme.regchain.creditApproval"
+  condition: (res.teacher.getIdentifier() == m.getIdentifier())
+  action: ALLOW
+}
+
+
+rule TeacherCanSummitCreditApproval {
+  description: "Allow teacher to approve credit"
+  participant: "org.acme.regchain.teacher"
+  operation: CREATE, UPDATE
+  resource: "org.acme.regchain.creditApproval"
+  action: ALLOW
+}
+
+
+rule RegistrarCanCheckGraduate {
+  description: "Allow registrar to check if student graduate"
+  participant: "org.acme.regchain.registrar"
+  operation: ALL
+  resource: "org.acme.regchain.graduateCheck"
+  action: ALLOW
+}
+
+rule RegistrarCanModStudent {
+  description: "Allow registrar to check if student graduate"
+  participant: "org.acme.regchain.registrar"
+  operation: CREATE,UPDATE
+  resource: "org.acme.regchain.student"
+  action: ALLOW
+}
+
+rule RegistrarCanCreatestudentCredit {
+  description: "Allow registrar to create studentCredit asset"
+  participant: "org.acme.regchain.registrar"
+  operation: CREATE,UPDATE
+  resource: "org.acme.regchain.student"
+  action: ALLOW
+}
+
+rule adminRegistrarCanDoEverything {
+    description: "Allow administrators to do anything"
+    participant: "org.acme.regchain.adminRegistrar"
+    operation: ALL
+    resource: "org.acme.regchain.*"
+    action: ALLOW
+}
+
+rule OwnerHasFullAccessToTheirAssets {
+    description: "Allow all participants full access to their assets"
+    participant(p): "org.acme.regchain.*"
+    operation: ALL
+    resource(r): "org.acme.regchain.*"
+    condition: (r.owner.getIdentifier() === p.getIdentifier())
+    action: ALLOW
+}
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////
+
+rule EverybodyCanReadEverything {
+    description: "Allow all participants read access to all resources"
+    participant: "org.acme.regchain.*"
+    operation: READ
+    resource: "org.acme.regchain.*"
+    action: ALLOW
+}
+
+
+rule SystemACL {
+    description: "System ACL to permit all access"
+    participant: "org.hyperledger.composer.system.Participant"
+    operation: ALL
+    resource: "org.hyperledger.composer.system.**"
+    action: ALLOW
+}
+
+rule NetworkAdminUser {
+    description: "Grant business network administrators full access to user resources"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: ALL
+    resource: "**"
+    action: ALLOW
+}
+
+rule NetworkAdminSystem {
+    description: "Grant business network administrators full access to system resources"
+    participant: "org.hyperledger.composer.system.NetworkAdmin"
+    operation: ALL
+    resource: "org.hyperledger.composer.system.**"
+    action: ALLOW
+}
